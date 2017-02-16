@@ -3,6 +3,7 @@ lib/*
 .DS_Store
 resources/*
 CMakeCache.txt
+CMakeLists.txt.user
 CMakeFiles
 CMakeScripts
 Testing
