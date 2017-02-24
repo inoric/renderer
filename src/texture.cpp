@@ -73,7 +73,6 @@ bool Texture::isValid()
     return m_isValid;
 }
 
-
 unsigned Texture::width() const
 {
     return m_width;

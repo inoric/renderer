@@ -61,6 +61,7 @@ namespace Util {
         }
     }
 
+    // TODO: Try and rewrite this, should be simpler...
     std::string makeRelativePath(const std::vector<std::string> pathParts)
     {
         std::string fullPath = "";
@@ -71,7 +72,11 @@ namespace Util {
             }
 
             if (fullPath.length()) {
-                fullPath = *it + "/" + fullPath;
+                if (it->back() != '/') {
+                    fullPath = *it + "/" + fullPath;
+                } else {
+                    fullPath = *it + fullPath;
+                }
             } else {
                 fullPath = *it;
             }
