@@ -47,6 +47,10 @@ set(ASSIMP_BUILD_STATIC_LIB ON CACHE BOOL "" FORCE)
 set(ASSIMP_ENABLE_BOOST_WORKAROUND ON CACHE BOOL "" FORCE)
 add_subdirectory(deps/assimp)
 
+IF(NOT MSVC)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden")
+ENDIF()
+
 # Compile and link executable
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 add_executable(${PROJECT_NAME} ${SOURCES} ${INCLUDES})
