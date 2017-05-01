@@ -94,23 +94,28 @@ int main()
 {
     GLFWwindow *window = createWindow();
     Model crate;
+    // crate.loadFile("resources/duck/rubberduck.obj");
     crate.loadFile("resources/wood_crates/crate1.obj");
     Model vesMasina;
     vesMasina.loadFile("resources/clothes_washing_machine_obj/clothes_washing_machine_internal.obj");
 
     Scene scene;
-    scene.rootNode.position = glm::vec3(0.0f, -0.5f, -2.0f);
-    scene.camera.position = glm::vec3(0.0f, 1.0f, 0.0f);
-    scene.rootNode.model = &crate;
+    scene.rootNode.position = glm::vec3(0.0f, -0.5f, 0.0f);
+    scene.camera.position = glm::vec3(0.0f, 0.5f, 3.0f);
+    // scene.rootNode.model = &crate;
 
     scene.rootNode.children.push_back(new SceneNode());
     scene.rootNode.children.push_back(new SceneNode());
     scene.rootNode.children.push_back(new SceneNode());
     scene.rootNode.children.push_back(new SceneNode());
+    scene.rootNode.children.push_back(new SceneNode());
+
+    scene.rootNode.children[4]->model = &crate;
+    scene.rootNode.children[4]->position = glm::vec3(0.0f, 0.0f, 0.0f);
+    scene.rootNode.children[4]->scale = glm::vec3(1.0f, 1.0f, 1.0f) * 2.0f;
 
     scene.rootNode.children[0]->model = &vesMasina;
     scene.rootNode.children[0]->position = glm::vec3(1.0f, 0.0f, 0.0f);
-    // scene.rootNode.children[0]->scale = glm::vec3(0.1f, 0.1f, 0.1f);
 
     scene.rootNode.children[1]->model = &vesMasina;
     scene.rootNode.children[1]->position = glm::vec3(0.0f, 0.0f, 1.0f);
@@ -123,8 +128,8 @@ int main()
     std::vector<ModelMatrixPair> renderables;
 
     Shader shader;
-    shader.addShaderFile(GL_VERTEX_SHADER, "resources/test.vert");
-    shader.addShaderFile(GL_FRAGMENT_SHADER, "resources/test.fsh");
+    shader.addShaderFile(GL_VERTEX_SHADER, "resources/shaders/normalMapped.vert");
+    shader.addShaderFile(GL_FRAGMENT_SHADER, "resources/shaders/normalMapped.fsh");
     shader.link();
 
     GLuint vao;
@@ -132,11 +137,14 @@ int main()
     glBindVertexArray(vao);
 
     glEnable(GL_DEPTH_TEST);
+    glEnable (GL_BLEND);
+    glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
 
     float lastTime = glfwGetTime(), currentTime = glfwGetTime();
     float delta = 0.0;
+    shader.bind();
     while (!glfwWindowShouldClose(window)) {
         currentTime = glfwGetTime();
         delta = currentTime - lastTime;
@@ -148,7 +156,6 @@ int main()
 //        glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        shader.bind();
         glEnableVertexAttribArray(0);
         glEnableVertexAttribArray(1);
         glEnableVertexAttribArray(2);
@@ -156,13 +163,13 @@ int main()
         glEnableVertexAttribArray(4);
 
         for (const auto &renderable : renderables) {
-            glm::mat4 view = glm::lookAt(glm::vec3(0, 1, 0), glm::vec3(0, 0.5, -1), glm::vec3(0, 1, 0));
+            glm::mat4 view = glm::lookAt(scene.camera.position, scene.camera.lookingAt(), scene.camera.upDirection());
             glm::mat4 projection = glm::perspective(45.0f, 1024.0f / 768.0f, 0.1f, 100.0f);
             glm::mat4 model = renderable.matrix;
             glm::mat3 modelView3x3 = glm::mat3(view * model);
             glm::mat4 mvp = projection * view * model;
 
-            shader.setUniform("lightPos_worldspace", glm::vec3(0.0f, 0.5f, 3.0f));
+            shader.setUniform("lightPos_worldspace", glm::vec3(0.0f, 0.5f, 4.0f));
             shader.setUniform("mvp", mvp);
             shader.setUniform("model", model);
             shader.setUniform("view", view);
@@ -178,19 +185,30 @@ int main()
             glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(MeshVertex), (void*) offsetof(MeshVertex, bitangent));
 
             unsigned offset = 0;
-            for (auto mesh : renderable.model->meshes()) {
+            for (const Mesh &mesh : renderable.model->meshes()) {
                 Material mat = renderable.model->materials()[mesh.materialIndex];
+                shader.setUniform("opacity", mat.opacity);
+                shader.setUniform("diffuseColor", mat.diffuseColor);
+
+                glActiveTexture(GL_TEXTURE0);
                 if (mat.diffuseTexture) {
-                    glActiveTexture(GL_TEXTURE0);
+                    shader.setUniform("hasDiffuseTexture", 1);
                     glBindTexture(GL_TEXTURE_2D, mat.diffuseTexture->handle());
                     shader.setUniform("diffuseSampler", 0);
-                }
-                if (mat.normalTexture) {
-                    glActiveTexture(GL_TEXTURE1);
-                    glBindTexture(GL_TEXTURE_2D, mat.normalTexture->handle());
-                    shader.setUniform("normalSampler", 1);
+                } else {
+                    shader.setUniform("hasDiffuseTexture", 0);
+                    glBindTexture(GL_TEXTURE_2D, 0);
                 }
 
+                glActiveTexture(GL_TEXTURE1);
+                if (mat.normalTexture) {
+                    shader.setUniform("hasNormalTexture", 1);
+                    glBindTexture(GL_TEXTURE_2D, mat.normalTexture->handle());
+                    shader.setUniform("normalSampler", 1);
+                } else {
+                    shader.setUniform("hasNormalTexture", 0);
+                    glBindTexture(GL_TEXTURE_2D, 0);
+                }
                 glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, (void*) (offset * sizeof(GLuint)));
                 offset += mesh.indices.size();
             }
@@ -201,8 +219,6 @@ int main()
         glDisableVertexAttribArray(2);
         glDisableVertexAttribArray(3);
         glDisableVertexAttribArray(4);
-
-        shader.unbind();
 
         glfwSwapBuffers(window);
         glfwPollEvents();

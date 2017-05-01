@@ -58,6 +58,14 @@ Material Model::loadMaterial(const aiMaterial *amaterial, const std::string &dir
         material.diffuseTexture->load(path);
     }
 
+    aiColor3D color(1.0f, 1.0f, 1.0f);
+    amaterial->Get(AI_MATKEY_COLOR_DIFFUSE, color);
+    material.diffuseColor = glm::vec3(color.r, color.g, color.b);
+    float opacity;
+    amaterial->Get(AI_MATKEY_OPACITY, material.opacity);
+    // printf("Color: [%f, %f, %f, %f]\n", color.r, color.g, color.b, color.a);
+    // printf("Opacity: %f\n", opacity);
+
     if (amaterial->GetTexture(aiTextureType_NORMALS, 0, &normalFilename) == AI_SUCCESS) {
         material.normalTexture = new Texture();
         std::string path = Util::makeRelativePath(dirpath, normalFilename.C_Str());
@@ -109,6 +117,7 @@ bool Model::loadFile(const std::string &filename)
 {
     Assimp::Importer importer;
     const aiScene* scene = importer.ReadFile(filename,
+        aiProcess_GenNormals             |
         aiProcess_CalcTangentSpace       |
         aiProcess_GenUVCoords            |
         aiProcess_FlipUVs                |

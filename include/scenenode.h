@@ -11,8 +11,8 @@ struct SceneNode
 {
     std::vector<SceneNode*> children;
 
-    Light *light;
-    Model *model;
+    Light *light = NULL;
+    Model *model = NULL;
 
     glm::vec3 position;
     glm::vec3 rotation;

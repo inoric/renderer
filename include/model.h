@@ -27,6 +27,7 @@ private:
     std::vector<Material> m_materials;
     GLuint m_vertex_buffer;
     GLuint m_index_buffer;
+    bool m_has_normals;
 };
 
 #endif // MODEL_H
