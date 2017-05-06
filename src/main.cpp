@@ -58,20 +58,21 @@ GLFWwindow *createWindow() {
     return window;
 }
 
-struct ModelMatrixPair
+struct RenderableObject
 {
     glm::mat4 matrix;
-    Model *model;
+    Model *model = NULL;
+    Light *light = NULL;
 };
 
 #include "mathutil.h"
 
 // Probably too many memory allocations but whatever
-std::vector<ModelMatrixPair> getRenderablesList(const SceneNode &root, glm::mat4 *parentMatrix = nullptr)
+std::vector<RenderableObject> getRenderablesList(const SceneNode &root, glm::mat4 *parentMatrix = nullptr)
 {
-    std::vector<ModelMatrixPair> renderables;
+    std::vector<RenderableObject> renderables;
 
-    ModelMatrixPair rootRenderable;
+    RenderableObject rootRenderable;
     glm::mat4 nodeMatrix = glm::translate(root.position) *
                            MathUtil::eulerRotationToMatrix(root.rotation) *
                            glm::scale(root.scale);
@@ -84,48 +85,30 @@ std::vector<ModelMatrixPair> getRenderablesList(const SceneNode &root, glm::mat4
         renderables.push_back(rootRenderable);
     }
     for (auto child : root.children) {
-        std::vector<ModelMatrixPair> children = getRenderablesList(*child, &rootRenderable.matrix);
+        std::vector<RenderableObject> children = getRenderablesList(*child, &rootRenderable.matrix);
         renderables.insert(renderables.end(), children.begin(), children.end());
     }
     return renderables;
 }
 
-int main()
+int main(int argc, char *argv[])
 {
+    if (argc != 2) {
+        std::string programName = "Renderer";
+        if (argc == 1) {
+            programName = std::string(argv[0]);
+        }
+        fprintf(stderr, "%s: scene not specified.\n", programName.c_str());
+        printf("Usage: %s <scene_file_path>\n", programName.c_str());
+        return 1;
+    }
+    std::string sceneFilePath(argv[1]);
     GLFWwindow *window = createWindow();
-    Model crate;
-    // crate.loadFile("resources/duck/rubberduck.obj");
-    crate.loadFile("resources/wood_crates/crate1.obj");
-    Model vesMasina;
-    vesMasina.loadFile("resources/clothes_washing_machine_obj/clothes_washing_machine_internal.obj");
 
     Scene scene;
-    scene.rootNode.position = glm::vec3(0.0f, -0.5f, 0.0f);
-    scene.camera.position = glm::vec3(0.0f, 0.5f, 3.0f);
-    // scene.rootNode.model = &crate;
+    scene.loadJSON(sceneFilePath);
 
-    scene.rootNode.children.push_back(new SceneNode());
-    scene.rootNode.children.push_back(new SceneNode());
-    scene.rootNode.children.push_back(new SceneNode());
-    scene.rootNode.children.push_back(new SceneNode());
-    scene.rootNode.children.push_back(new SceneNode());
-
-    scene.rootNode.children[4]->model = &crate;
-    scene.rootNode.children[4]->position = glm::vec3(0.0f, 0.0f, 0.0f);
-    scene.rootNode.children[4]->scale = glm::vec3(1.0f, 1.0f, 1.0f) * 2.0f;
-
-    scene.rootNode.children[0]->model = &vesMasina;
-    scene.rootNode.children[0]->position = glm::vec3(1.0f, 0.0f, 0.0f);
-
-    scene.rootNode.children[1]->model = &vesMasina;
-    scene.rootNode.children[1]->position = glm::vec3(0.0f, 0.0f, 1.0f);
-
-    scene.rootNode.children[2]->model = &vesMasina;
-    scene.rootNode.children[2]->position = glm::vec3(-1.0f, 0.0f, 0.0f);
-
-    scene.rootNode.children[3]->model = &vesMasina;
-    scene.rootNode.children[3]->position = glm::vec3(0.0f, 0.0f, -1.0f);
-    std::vector<ModelMatrixPair> renderables;
+    std::vector<RenderableObject> renderables;
 
     Shader shader;
     shader.addShaderFile(GL_VERTEX_SHADER, "resources/shaders/normalMapped.vert");

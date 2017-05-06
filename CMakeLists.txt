@@ -20,6 +20,10 @@ FOREACH(subdir ${DEPDIRS})
     message(STATUS "Adding " deps/${subdir}/include)
     set(DEPINCLUDES ${DEPINCLUDES} deps/${subdir}/include)
 ENDFOREACH()
+
+# nlohman::json has it's only header file in src...
+set(DEPINCLUDES deps/json/src ${DEPINCLUDES})
+
 set(INCLUDES include ./ ${DEPINCLUDES})
 
 # Add all .cpp files from src to sources list

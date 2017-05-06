@@ -5,6 +5,7 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 #include <assimp/texture.h>
+#include <stdio.h>
 
 Model::Model()
 {
@@ -82,6 +83,7 @@ Material Model::loadMaterial(const aiMaterial *amaterial, const std::string &dir
 
 void Model::fillBuffers()
 {
+    fprintf(stderr, "Filling buffer\n");
     std::vector<MeshVertex> vertices;
     std::vector<GLuint> indices;
     for (Mesh mesh : m_meshes) {
