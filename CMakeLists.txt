@@ -24,6 +24,9 @@ ENDFOREACH()
 # nlohman::json has it's only header file in src...
 set(DEPINCLUDES deps/json/src ${DEPINCLUDES})
 
+# GLM has it's header files in glm/glm
+set(DEPINCLUDES deps/glm/ ${DEPINCLUDES})
+
 set(INCLUDES include ./ ${DEPINCLUDES})
 
 # Add all .cpp files from src to sources list
