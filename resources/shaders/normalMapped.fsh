@@ -53,5 +53,4 @@ void main()
     vec3 specularColor = 1.0 * (0.1 + materialSpecularColor) * lightColor * lightPower * pow(cosAlpha, 5) / (distance*distance);
 
     color = vec4(ambientColor + diffuseColor + specularColor, opacity);
-//    color = model_color * cosTheta;
 }
