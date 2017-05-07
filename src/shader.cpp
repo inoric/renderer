@@ -3,10 +3,6 @@
 #include <stdlib.h>
 #include <glm/gtc/type_ptr.hpp>
 #include "util.h"
-//Result<Shader, std::string> Shader::fromFiles()
-//{
-
-//}
 
 Shader::Shader()
 {
