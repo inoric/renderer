@@ -1,7 +1,8 @@
 bin/*
 lib/*
 .DS_Store
-resources/*
+resources/models/*
+resources/scenes/*
 CMakeCache.txt
 CMakeLists.txt.user
 CMakeFiles
