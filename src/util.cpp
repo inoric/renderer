@@ -4,6 +4,7 @@
 #include <istream>
 #include <streambuf>
 #include <sstream>
+#include <iterator>
 
 namespace Util {
     std::string fileToString(const std::string &filename)
@@ -45,7 +46,8 @@ namespace Util {
     std::string joinString(const std::vector<std::string> &parts, const std::string &delim)
     {
         std::ostringstream stream;
-        std::copy(parts.begin(), parts.end(), std::ostream_iterator<std::string>(stream, delim.c_str()));
+	std::ostream_iterator< std::string > streamIt(stream, delim.c_str());
+        std::copy(parts.begin(), parts.end(), streamIt);
         return stream.str();
 
     }
