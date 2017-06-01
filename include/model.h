@@ -21,7 +21,7 @@ public:
     bool loadFile(const std::string &filename);
     GLuint vertexBufferHandle();
     GLuint indexBufferHandle();
-
+    std::string filename = "";
 private:
     std::vector<Mesh> m_meshes;
     std::vector<Material> m_materials;

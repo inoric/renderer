@@ -26,7 +26,7 @@ vec3 jsonToVec3(Json json)
     return vec;
 }
 
-SceneNode jsonToSceneNode(Json json, std::unordered_map<std::string, Model> *models)
+SceneNode jsonToSceneNode(Json json, std::unordered_map<std::string, Model*> *models)
 {
     SceneNode node;
     if (json.count("position")) {
@@ -47,11 +47,14 @@ SceneNode jsonToSceneNode(Json json, std::unordered_map<std::string, Model> *mod
         std::string modelFilename = json["model"].get<std::string>();
         auto modelIt = models->find(modelFilename);
         if (modelIt == models->end()) {
-            (*models)[modelFilename]; // Creates value if it doesn't exist
-            modelIt = models->find(modelFilename);
-            modelIt->second.loadFile(modelFilename);
+            Model *newModel = new Model();
+            newModel->loadFile(modelFilename);
+            newModel->filename = modelFilename;
+            (*models)[modelFilename] = newModel;
+            node.model = newModel;
+        } else {
+            node.model = modelIt->second;
         }
-        node.model = &(modelIt->second);
     }
     if (json.count("children")) {
         if (!json["children"].is_array()) {

@@ -42,7 +42,7 @@ GLFWwindow *createWindow() {
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    window = glfwCreateWindow(1024, 768, "Hello, world", NULL, NULL);
+    window = glfwCreateWindow(1024, 768, "Prozorko", NULL, NULL);
     if (!window) {
         fprintf(stderr, "Error creating window.\n");
         glfwDestroyWindow(window);
@@ -68,7 +68,6 @@ struct RenderableObject
 
 #include "mathutil.h"
 
-// Probably too many memory allocations but whatever
 std::vector<RenderableObject> getRenderablesList(const SceneNode &root, glm::mat4 *parentMatrix = nullptr)
 {
     std::vector<RenderableObject> renderables;
@@ -84,6 +83,8 @@ std::vector<RenderableObject> getRenderablesList(const SceneNode &root, glm::mat
     if (root.model) {
         rootRenderable.model = root.model;
         renderables.push_back(rootRenderable);
+    } else {
+        rootRenderable.model = NULL;
     }
     for (auto child : root.children) {
         std::vector<RenderableObject> children = getRenderablesList(*child, &rootRenderable.matrix);
@@ -146,9 +147,11 @@ int main(int argc, char *argv[])
         glEnableVertexAttribArray(3);
         glEnableVertexAttribArray(4);
 
+        glm::mat4 view = glm::lookAt(scene.camera.position, scene.camera.lookingAt(), scene.camera.upDirection());
+        glm::mat4 projection = glm::perspective(45.0f, 1024.0f / 768.0f, 0.1f, 100.0f);
         for (const auto &renderable : renderables) {
-            glm::mat4 view = glm::lookAt(scene.camera.position, scene.camera.lookingAt(), scene.camera.upDirection());
-            glm::mat4 projection = glm::perspective(45.0f, 1024.0f / 768.0f, 0.1f, 100.0f);
+            // fprintf(stderr, "Renderable has model: %s\n", renderable.model->filename.c_str());
+
             glm::mat4 model = renderable.matrix;
             glm::mat3 modelView3x3 = glm::mat3(view * model);
             glm::mat4 mvp = projection * view * model;

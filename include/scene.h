@@ -10,7 +10,7 @@ struct Scene
 {
     SceneNode rootNode;
     Camera camera;
-    std::unordered_map<std::string, Model> models;
+    std::unordered_map<std::string, Model*> models;
 
     bool loadJSON(const std::string &filename);
 };
